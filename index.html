@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>زيادة متابعين ومشاهدات يوتيوب</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #eef2f3, #8e9eab);
+      text-align: center;
+      padding: 30px;
+      direction: rtl;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    .timer {
+      font-size: 20px;
+      color: #333;
+      margin-top: 20px;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎯 اجمع النقاط و زد متابعينك</h1>
+  <p>رصيدك الحالي: <span id="points">0</span> نقطة</p>
+
+  <button onclick="openVideo()">👁️ شاهد الفيديو (25 نقطة)</button>
+  <button onclick="openChannel()">🔔 اشترك في القناة (15 نقطة)</button>
+
+  <div class="timer" id="timer" style="display:none;">المتبقي: 30 ثانية</div>
+
+  <div id="form-section" style="display:none;">
+    <h3>🎉 وصلت إلى 1000 نقطة! أضف رابطك:</h3>
+    <input type="text" id="videoInput" placeholder="رابط الفيديو">
+    <input type="text" id="channelInput" placeholder="رابط القناة">
+    <button onclick="submitUserContent()">📤 إرسال محتواي</button>
+  </div>
+</div>
+
+<script>
+  let points = parseInt(localStorage.getItem("points")) || 0;
+  let userVideos = [
+    "https://youtu.be/LEMruLM7TDs?si=Qad7fDRx1ojIT3kt"
+  ];
+  let userChannels = [
+    "https://www.youtube.com/@DhilluAlQissa",
+    "https://www.youtube.com/@ArabGamesNetwork",
+    "https://www.youtube.com/@maamarkillerbee",
+    "https://www.youtube.com/@kadawmiloud_plus"
+  ];
+  let subscribedChannels = JSON.parse(localStorage.getItem("subscribedChannels")) || [];
+  let submittedVideos = JSON.parse(localStorage.getItem("submittedVideos")) || [];
+  let submittedChannels = JSON.parse(localStorage.getItem("submittedChannels")) || [];
+
+  function updatePoints() {
+    document.getElementById("points").textContent = points;
+    if (points >= 1000) {
+      document.getElementById("form-section").style.display = "block";
+    } else {
+      document.getElementById("form-section").style.display = "none";
+    }
+  }
+
+  function isValidYouTubeLink(url, type = "video") {
+    if (type === "video") {
+      return /^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[^\s]+$/.test(url);
+    } else {
+      return /^https:\/\/(www\.)?youtube\.com\/@[a-zA-Z0-9_\-]+$/.test(url);
+    }
+  }
+
+  function openVideo() {
+    const randomLink = userVideos[Math.floor(Math.random() * userVideos.length)];
+    let seconds = 30;
+    const timer = document.getElementById("timer");
+    timer.style.display = "block";
+    timer.textContent = `المتبقي: ${seconds} ثانية`;
+
+    const interval = setInterval(() => {
+      seconds--;
+      timer.textContent = `المتبقي: ${seconds} ثانية`;
+      if (seconds === 0) {
+        clearInterval(interval);
+        timer.style.display = "none";
+        points += 25;
+        localStorage.setItem("points", points);
+        updatePoints();
+        alert("✅ تمت إضافة 25 نقطة بعد المشاهدة!");
+      }
+    }, 1000);
+
+    window.open(randomLink, '_blank');
+  }
+
+  function openChannel() {
+    const randomLink = userChannels[Math.floor(Math.random() * userChannels.length)];
+
+    if (subscribedChannels.includes(randomLink)) {
+      alert("❌ لقد حصلت بالفعل على نقاط من هذه القناة.");
+      return;
+    }
+
+    const confirmed = confirm("هل قمت بالاشتراك في القناة؟ بعد التأكيد ستحصل على 15 نقطة.");
+    if (confirmed) {
+      window.open(randomLink, '_blank');
+      points += 15;
+      subscribedChannels.push(randomLink);
+      localStorage.setItem("points", points);
+      localStorage.setItem("subscribedChannels", JSON.stringify(subscribedChannels));
+      updatePoints();
+    } else {
+      alert("اشترك أولاً للحصول على النقاط!");
+    }
+  }
+
+  function submitUserContent() {
+    const videoInput = document.getElementById("videoInput").value.trim();
+    const channelInput = document.getElementById("channelInput").value.trim();
+
+    if (videoInput && !isValidYouTubeLink(videoInput, "video")) {
+      alert("❌ رابط الفيديو غير صالح!");
+      return;
+    }
+    if (channelInput && !isValidYouTubeLink(channelInput, "channel")) {
+      alert("❌ رابط القناة غير صالح!");
+      return;
+    }
+
+    if (points < 1000) {
+      alert("❌ أنت بحاجة إلى 1000 نقطة لإضافة محتواك!");
+      return;
+    }
+
+    if (videoInput && !submittedVideos.includes(videoInput)) {
+      userVideos.push(videoInput);
+      submittedVideos.push(videoInput);
+      points -= 1000;
+    } else if (videoInput) {
+      alert("⚠️ لقد قمت بإضافة هذا الفيديو مسبقًا!");
+      return;
+    }
+
+    if (channelInput && !submittedChannels.includes(channelInput)) {
+      userChannels.push(channelInput);
+      submittedChannels.push(channelInput);
+      points -= 1000;
+    } else if (channelInput) {
+      alert("⚠️ لقد قمت بإضافة هذه القناة مسبقًا!");
+      return;
+    }
+
+    localStorage.setItem("points", points);
+    localStorage.setItem("submittedVideos", JSON.stringify(submittedVideos));
+    localStorage.setItem("submittedChannels", JSON.stringify(submittedChannels));
+    document.getElementById("videoInput").value = "";
+    document.getElementById("channelInput").value = "";
+    alert("✅ تم إضافة محتواك بنجاح!");
+    updatePoints();
+  }
+
+  updatePoints();
+</script>
+
+</body>
+</html>
